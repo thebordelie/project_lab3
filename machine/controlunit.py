@@ -31,7 +31,7 @@ microcode_fields_name = [
     "mux_port",
     "latch_in",
     "mux_mPC",
-    "latch_mPC"
+    "latch_mPC",
 ]
 signals = [
     "latch_cr",
@@ -47,7 +47,7 @@ signals = [
     "signal_wr",
     "latch_sp",
     "latch_in",
-    "latch_out"
+    "latch_out",
 ]
 selectors = {
     "latch_ip": "sel_ip",
@@ -92,11 +92,14 @@ class Decoder:
         options = []
         if opcode in math_commands:
             options.append(
-                {"latch_left_op": 1,
-                 "latch_right_op": 1,
-                 "signal_calculate": 1,
-                 "sel_acc": Selector.FROM_ALU,
-                 "latch_acc": 1})
+                {
+                    "latch_left_op": 1,
+                    "latch_right_op": 1,
+                    "signal_calculate": 1,
+                    "sel_acc": Selector.FROM_ALU,
+                    "latch_acc": 1,
+                }
+            )
         elif opcode in jump_commands:
             options.append({"check_flags": 1})
             options.append({"sel_ip": Selector.FROM_DR, "latch_ip": 1})
@@ -106,14 +109,17 @@ class Decoder:
                 Opcode.LD: [{"sel_acc": Selector.FROM_DR, "latch_acc": 1}],
                 Opcode.ST: [{"sel_wr": Selector.FROM_AR, "signal_wr": 1}],
                 Opcode.PUSH: [{"sel_wr": Selector.FROM_SP, "signal_wr": 1, "sel_sp": Selector.SEL_DEC, "latch_sp": 1}],
-                Opcode.POP: [{"sel_sp": Selector.SEL_INC, "latch_sp": 1},
-                             {"sel_dr": Selector.FROM_SP, "latch_dr": 1},
-                             {"sel_acc": Selector.FROM_DR, "latch_acc": 1}],
+                Opcode.POP: [
+                    {"sel_sp": Selector.SEL_INC, "latch_sp": 1},
+                    {"sel_dr": Selector.FROM_SP, "latch_dr": 1},
+                    {"sel_acc": Selector.FROM_DR, "latch_acc": 1},
+                ],
                 Opcode.CMP: [{"latch_left_op": 1, "latch_right_op": 1, "signal_calculate": 1}],
-                Opcode.READ: [{"mux_port": Port.BUFFER_IN, "latch_in": 1},
-                              {"sel_acc": Selector.FROM_INPUT, "latch_acc": 1}],
-                Opcode.PRINT: [{"mux_port": Port.OUT, "latch_out": 1}]
-
+                Opcode.READ: [
+                    {"mux_port": Port.BUFFER_IN, "latch_in": 1},
+                    {"sel_acc": Selector.FROM_INPUT, "latch_acc": 1},
+                ],
+                Opcode.PRINT: [{"mux_port": Port.OUT, "latch_out": 1}],
             }
             options = commands[opcode]
 
@@ -125,17 +131,25 @@ class Decoder:
     def operand_fetch(self, types_of_addressing: str):
         if types_of_addressing == TypesOfAddressing.DIRECT.value:
             self.microcode.append(self.create_micro_instr({"sel_dr": Selector.FROM_CR, "latch_dr": 1}))
-        if types_of_addressing == TypesOfAddressing.ABSOLUT.value or types_of_addressing == TypesOfAddressing.RELATIVE.value:
+        if (
+            types_of_addressing == TypesOfAddressing.ABSOLUT.value
+            or types_of_addressing == TypesOfAddressing.RELATIVE.value
+        ):
             self.microcode.append(self.create_micro_instr({"sel_ar": Selector.FROM_CR, "latch_ar": 1}))
         if types_of_addressing == TypesOfAddressing.RELATIVE.value:
             self.microcode.append(self.create_micro_instr({"sel_ar": Selector.FROM_MEMORY, "latch_ar": 1}))
-        if types_of_addressing == TypesOfAddressing.ABSOLUT.value or types_of_addressing == TypesOfAddressing.RELATIVE.value:
+        if (
+            types_of_addressing == TypesOfAddressing.ABSOLUT.value
+            or types_of_addressing == TypesOfAddressing.RELATIVE.value
+        ):
             self.microcode.append(self.create_micro_instr({"sel_dr": Selector.FROM_MEMORY, "latch_dr": 1}))
 
     def instruction_fetch(self) -> list[Microcode]:
         return [
-            self.create_micro_instr({"latch_cr": 1, "sel_ip": Selector.FROM_IP, "latch_ip": 1},
-                                    MicrocodeSelector.DECODE)]
+            self.create_micro_instr(
+                {"latch_cr": 1, "sel_ip": Selector.FROM_IP, "latch_ip": 1}, MicrocodeSelector.DECODE
+            )
+        ]
 
     def create_micro_instr(self, options: dict, mux_mpc: MicrocodeSelector = MicrocodeSelector.INCREMENT) -> Microcode:
         options["mux_mPC"] = mux_mpc
@@ -192,14 +206,14 @@ class ControlUnit:
     def check_flags(self):
         zero_flag, negative_flag = self.data_path.get_flags()
         if not (
-                self.data_path.cr.opcode == Opcode.JE
-                and zero_flag == 1
-                or self.data_path.cr.opcode == Opcode.JA
-                and (negative_flag == 0)
-                or self.data_path.cr.opcode == Opcode.JB
-                and (negative_flag == 1 or zero_flag == 1)
-                or self.data_path.cr.opcode == Opcode.JNE
-                and zero_flag == 0
+            self.data_path.cr.opcode == Opcode.JE
+            and zero_flag == 1
+            or self.data_path.cr.opcode == Opcode.JA
+            and (negative_flag == 0)
+            or self.data_path.cr.opcode == Opcode.JB
+            and (negative_flag == 1 or zero_flag == 1)
+            or self.data_path.cr.opcode == Opcode.JNE
+            and zero_flag == 0
         ):
             self.microcode_ip += 1
 
@@ -207,7 +221,6 @@ class ControlUnit:
         return getattr(self.microcode_memory[self.microcode_ip], selectors.get(signal_name))
 
     def __repr__(self):
-
         return "execute_command {:>15} | tick: {:10d} | ip: {:10d} | dr {:10d} |ar: {:10d} | acc: {:10d} | sp: {:10d}".format(
             self.data_path.cr.opcode,
             self.tick_counter,
@@ -215,5 +228,5 @@ class ControlUnit:
             self.data_path.dr,
             self.data_path.ar,
             self.data_path.acc,
-            self.data_path.sp
+            self.data_path.sp,
         )
