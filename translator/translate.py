@@ -351,7 +351,6 @@ def reset_param():
 
 
 def main(source, target):
-    
     with open(source, encoding="utf-8") as f:
         code = f.read()
     tokens = Lexer().lex_analysis(code)
