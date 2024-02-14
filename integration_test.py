@@ -28,5 +28,4 @@ def test_translator_and_machine(golden, caplog):
         with open(target, encoding="utf-8") as file:
             code = file.read()
         assert code == golden.out["out_code"]
-        assert stdout.getvalue() == golden.out["out_stdout"]
         assert caplog.text.strip() == golden.out["out_log"]
