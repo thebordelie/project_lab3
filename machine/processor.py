@@ -29,7 +29,7 @@ def simulation(instructions: list[Instruction], memory_size: int, input_file: st
 
 def main(source: str, input_file: str):
     instructions = read_code(source)
-    simulation(instructions, MEMORY_SIZE, input_file, 10000)
+    simulation(instructions, MEMORY_SIZE, input_file, 1000000)
 
 
 if __name__ == "__main__":
