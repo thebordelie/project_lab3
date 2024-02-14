@@ -214,7 +214,7 @@ ___
 
 **Datapath**
 
-![DataPath](./img/datapath.png)
+![DataPath](./img/data_path.png)
 
 Реализован в [machine](machine/data_path.py).
 
