@@ -150,7 +150,7 @@ class DataPath:
         assert sel in {
             Selector.FROM_ALU,
             Selector.FROM_DR,
-            Selector.FROM_INPUT
+            Selector.FROM_INPUT,
         }, "internal error, incorrect selector: {}".format(sel)
         if sel == Selector.FROM_ALU:
             self.acc = self.alu.result
@@ -185,7 +185,11 @@ class DataPath:
             self.sp = self.memory_size - 1
 
     def latch_dr(self, sel: Selector) -> None:
-        assert sel in {Selector.FROM_CR, Selector.FROM_MEMORY, Selector.FROM_SP}, "internal error, incorrect selector: {}".format(sel)
+        assert sel in {
+            Selector.FROM_CR,
+            Selector.FROM_MEMORY,
+            Selector.FROM_SP,
+        }, "internal error, incorrect selector: {}".format(sel)
         if sel == Selector.FROM_CR:
             self.dr = self.cr.arg2
         else:
@@ -218,9 +222,7 @@ class DataPath:
 
     def latch_in(self, sel: Port):
         assert sel in {Port.BUFFER_IN}, "internal error, incorrect selector: {}".format(sel)
-        devices = {
-            Port.BUFFER_IN: self.device.get_char_from_device
-        }
+        devices = {Port.BUFFER_IN: self.device.get_char_from_device}
         self.in_reg = devices[sel]()
 
     def latch_out(self, sel: Port):
