@@ -251,10 +251,10 @@ def process_new_block(node: Node, sign: CompSign):
         )
     for inst in temporary_commands1:
         if (
-                inst.opcode == Opcode.JA
-                or inst.opcode == Opcode.JE
-                or inst.opcode == Opcode.JB
-                or inst.opcode == Opcode.JNE
+            inst.opcode == Opcode.JA
+            or inst.opcode == Opcode.JE
+            or inst.opcode == Opcode.JB
+            or inst.opcode == Opcode.JNE
         ):
             add_instructions(inst.opcode, inst.arg1, int(inst.arg2) - inst.index + len(commands))
         elif inst.opcode == Opcode.JUMP:
@@ -319,22 +319,14 @@ def process_output_node(node: InputOutputNode) -> None:
             add_pop_instr()
 
 
-def process_input_output_node(node: InputOutputNode) -> None:
-    types = {
-        NodeTypes.INPUT: process_input_node,
-        NodeTypes.OUTPUT: process_output_node,
-    }
-    types[node.type](node)
-
-
 node_handler = {
     NodeTypes.VARIABLE_DECLARATION: process_variable_init_mode,
     NodeTypes.EXPRESSION: process_expression_node,
     NodeTypes.LITERAL: process_id_node,
     NodeTypes.IF_STATEMENT: process_if_node,
     NodeTypes.WHILE_STATEMENT: process_while_node,
-    NodeTypes.INPUT: process_input_output_node,
-    NodeTypes.OUTPUT: process_input_output_node,
+    NodeTypes.INPUT: process_input_node,
+    NodeTypes.OUTPUT: process_output_node,
 }
 
 
