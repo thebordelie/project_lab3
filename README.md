@@ -56,7 +56,7 @@ ___
 
 <output> ::= print(<id>|<string>);
 
-<line> ::='{<any_ character>}'
+<string> ::='{<any_ character>}'
 
 <any_ character> ::= <letter> | <number> | ...
 
