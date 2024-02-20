@@ -33,9 +33,10 @@ def main(source: str, input_file: str):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG,filename="py.log", format="%(levelname)-7s %(module)s:%(funcName)-13s %(message)s")
+    logging.basicConfig(
+        level=logging.DEBUG, filename="py.log", format="%(levelname)-7s %(module)s:%(funcName)-13s %(message)s"
+    )
     logging.getLogger().setLevel(logging.DEBUG)
-    # assert len(sys.argv) == 3, "Wrong arguments: translator.py <input_file> <target_file>"
-    # _, source, target = sys.argv
-    # main(source, target)
-    main("../output.txt", "../input.txt")
+    assert len(sys.argv) == 3, "Wrong arguments: translator.py <input_file> <target_file>"
+    _, source, target = sys.argv
+    main(source, target)
