@@ -59,7 +59,7 @@ selectors_for_data_path = {
     "latch_sp": "sel_sp",
     "latch_in": "mux_port",
     "latch_out": "mux_port",
-    "latch_mPC": "mux_mPC"
+    "latch_mPC": "mux_mPC",
 }
 
 
