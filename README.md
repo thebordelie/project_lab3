@@ -28,7 +28,7 @@ ___
 
 <program_line> ::= <variable declaration> | <conditional operator> | <loop> | <input> | <output>
 
-<variable declaration> ::= [<type>] ["{"<integer constant>"}"] <identifier> "=" <expression> ;
+<variable declaration> ::= [<type>] ["["<integer constant>"]"] <identifier> "=" <expression> ;
 
 <type> :: = int | str
 
@@ -116,7 +116,7 @@ ___
 - Если встречается команда print('some'); -- символы внутри print после трансляции хранятся последовательно и представлены командой NOP
 - Если встречается конструкция str some_str [number] = 'some' -- в памяти после всех инструкций или после последнего строкового литерала выделяется память длиной number
 - Если встречается коснтрукция str some_str = 'some' --в памяти после всех инструкций или после последнего строкового литерала выделяется память длиной строки
-- Конструкция str[number] требуется для корректной работы со считыванием данных, так как шанс затирания последующих данных снижается
+- Конструкция str some_str [number] требуется для корректной работы со считыванием данных, так как шанс затирания последующих данных снижается
 
 ## Система команд
 
@@ -249,7 +249,7 @@ ___
 - Выполняет микрокод:
   - Включает в себя сигналы и мультиплексоры для DataPath
   - Хранится в отдельной памяти в Control Unit
-  - Названия каждобого бита:
+  - Названия каждого бита:
     - **latch_cr** -- защелкнуть адресный регистр
     - **sel_ip** -- Мультиплексор для ip
     - **latch_ip** -- защелкнуть счетчик команд
@@ -272,11 +272,16 @@ ___
     - **latch_out** -- Запись в порт для выхода
     - **mux_port** -- Выбор порта 
     - **latch_in** -- Запись в порт для входа
-    - **mux_mPC** -- 3 возможных значения
+    - **mux_mPC** -- 4 возможных значения
       - +1 -- переход к следующей микрокоманде
       - 0 -- переход к 0 микрокоманде
-      - decode - декодировать следующую команду
+      - DECODE_OP_FETCH -- декодировать цикл выборки операнда
+      - DECODE_COMMAND -- декодировать исполнение команды
     - **latch_mPC** -- защёлкнуть счётчик микрокоманд
+- Класс MicrocodeMemory в [Control unit](machine/control_unit.py) представляет собой память микроинструкций, на каждом такте происходит считывание очередной микроинструкции и отправки нужных сигналов в DataPath
+  - 0 ячейка - Instruction Fetch
+  - 1-7 ячейка - Operand Fetch
+  - 8-20 ячейки - Выполнение команды
 - Метод `process_tick` моделирует выполнение следующего такта
 - Для журнала состояний процессора используется стандартный модуль `logging`
 - Каждая запись в журнале соответсвует состоянию процессора **после** выполнения инструкции
@@ -357,11 +362,11 @@ jobs:
         run: poetry run ruff check .
 ```
 
-Пример использования и журнал работы процессора на примере hello_world
+Пример использования и журнал работы процессора на примере cat
 ```
 - Код:
   int n = 0;
-  str a[20]= '';
+  str a [20] = '';
   read(n);
   while (n>0) {
       a = a + n;
@@ -412,289 +417,289 @@ jobs:
 ```
 
 - Вывод программы:
-hello world!
+Dmitry
 
 - Журнал работы:
 ```
 INFO    processor:simulation    Simulation start
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:          4 | ip:          1 | dr          0 |ar:          0 | acc:          0 | sp:       8095
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:          7 | ip:          2 | dr          0 |ar:          0 | acc:          0 | sp:       8094
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:         11 | ip:          3 | dr       4097 |ar:          0 | acc:       4097 | sp:       8094
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:         14 | ip:          4 | dr       4097 |ar:          0 | acc:       4097 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:         18 | ip:          5 | dr          0 |ar:          0 | acc:          0 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.ST | tick:         23 | ip:          6 | dr          0 |ar:       4097 | acc:          0 | sp:       8093
-DEBUG   datapath:get_char_from_device INPUT-> D
-INFO    controlunit:microcode_handler execute_command     Opcode.READ | tick:         27 | ip:          7 | dr          0 |ar:       4097 | acc:         68 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.ST | tick:         32 | ip:          8 | dr          0 |ar:       8095 | acc:         68 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:         37 | ip:          9 | dr         68 |ar:       8095 | acc:         68 | sp:       8093
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:         41 | ip:         10 | dr          0 |ar:       8095 | acc:         68 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.JB | tick:         45 | ip:         11 | dr         26 |ar:       8095 | acc:         68 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:         49 | ip:         12 | dr       4097 |ar:       8095 | acc:       4097 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:         52 | ip:         13 | dr       4097 |ar:       8095 | acc:       4097 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:         58 | ip:         14 | dr          0 |ar:       4097 | acc:          0 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:         62 | ip:         15 | dr          0 |ar:       4097 | acc:          0 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:         67 | ip:         20 | dr         20 |ar:       4097 | acc:          0 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:         72 | ip:         21 | dr         68 |ar:       8095 | acc:         68 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.ST | tick:         78 | ip:         22 | dr          0 |ar:       4097 | acc:         68 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:         83 | ip:         23 | dr       4097 |ar:       4097 | acc:       4097 | sp:       8093
-DEBUG   datapath:get_char_from_device INPUT-> m
-INFO    controlunit:microcode_handler execute_command     Opcode.READ | tick:         87 | ip:         24 | dr       4097 |ar:       4097 | acc:        109 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.ST | tick:         92 | ip:         25 | dr         68 |ar:       8095 | acc:        109 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:         96 | ip:          8 | dr          8 |ar:       8095 | acc:        109 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        101 | ip:          9 | dr        109 |ar:       8095 | acc:        109 | sp:       8093
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        105 | ip:         10 | dr          0 |ar:       8095 | acc:        109 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.JB | tick:        109 | ip:         11 | dr         26 |ar:       8095 | acc:        109 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        113 | ip:         12 | dr       4097 |ar:       8095 | acc:       4097 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        116 | ip:         13 | dr       4097 |ar:       8095 | acc:       4097 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        122 | ip:         14 | dr         68 |ar:       4097 | acc:         68 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        126 | ip:         15 | dr          0 |ar:       4097 | acc:         68 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        130 | ip:         16 | dr         20 |ar:       4097 | acc:         68 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        135 | ip:         17 | dr       4097 |ar:       4097 | acc:       4097 | sp:       8093
-INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        138 | ip:         18 | dr       4097 |ar:       4097 | acc:       4098 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        141 | ip:         19 | dr       4097 |ar:       4097 | acc:       4098 | sp:       8092
-INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        145 | ip:         13 | dr         13 |ar:       4097 | acc:       4098 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        151 | ip:         14 | dr          0 |ar:       4098 | acc:          0 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        155 | ip:         15 | dr          0 |ar:       4098 | acc:          0 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        160 | ip:         20 | dr         20 |ar:       4098 | acc:          0 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        165 | ip:         21 | dr        109 |ar:       8095 | acc:        109 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.ST | tick:        171 | ip:         22 | dr          0 |ar:       4098 | acc:        109 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        176 | ip:         23 | dr       4098 |ar:       4098 | acc:       4098 | sp:       8093
-DEBUG   datapath:get_char_from_device INPUT-> i
-INFO    controlunit:microcode_handler execute_command     Opcode.READ | tick:        180 | ip:         24 | dr       4098 |ar:       4098 | acc:        105 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.ST | tick:        185 | ip:         25 | dr        109 |ar:       8095 | acc:        105 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        189 | ip:          8 | dr          8 |ar:       8095 | acc:        105 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        194 | ip:          9 | dr        105 |ar:       8095 | acc:        105 | sp:       8093
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        198 | ip:         10 | dr          0 |ar:       8095 | acc:        105 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.JB | tick:        202 | ip:         11 | dr         26 |ar:       8095 | acc:        105 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        206 | ip:         12 | dr       4097 |ar:       8095 | acc:       4097 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        209 | ip:         13 | dr       4097 |ar:       8095 | acc:       4097 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        215 | ip:         14 | dr         68 |ar:       4097 | acc:         68 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        219 | ip:         15 | dr          0 |ar:       4097 | acc:         68 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        223 | ip:         16 | dr         20 |ar:       4097 | acc:         68 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        228 | ip:         17 | dr       4097 |ar:       4097 | acc:       4097 | sp:       8093
-INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        231 | ip:         18 | dr       4097 |ar:       4097 | acc:       4098 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        234 | ip:         19 | dr       4097 |ar:       4097 | acc:       4098 | sp:       8092
-INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        238 | ip:         13 | dr         13 |ar:       4097 | acc:       4098 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        244 | ip:         14 | dr        109 |ar:       4098 | acc:        109 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        248 | ip:         15 | dr          0 |ar:       4098 | acc:        109 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        252 | ip:         16 | dr         20 |ar:       4098 | acc:        109 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        257 | ip:         17 | dr       4098 |ar:       4098 | acc:       4098 | sp:       8093
-INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        260 | ip:         18 | dr       4098 |ar:       4098 | acc:       4099 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        263 | ip:         19 | dr       4098 |ar:       4098 | acc:       4099 | sp:       8092
-INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        267 | ip:         13 | dr         13 |ar:       4098 | acc:       4099 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        273 | ip:         14 | dr          0 |ar:       4099 | acc:          0 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        277 | ip:         15 | dr          0 |ar:       4099 | acc:          0 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        282 | ip:         20 | dr         20 |ar:       4099 | acc:          0 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        287 | ip:         21 | dr        105 |ar:       8095 | acc:        105 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.ST | tick:        293 | ip:         22 | dr          0 |ar:       4099 | acc:        105 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        298 | ip:         23 | dr       4099 |ar:       4099 | acc:       4099 | sp:       8093
-DEBUG   datapath:get_char_from_device INPUT-> t
-INFO    controlunit:microcode_handler execute_command     Opcode.READ | tick:        302 | ip:         24 | dr       4099 |ar:       4099 | acc:        116 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.ST | tick:        307 | ip:         25 | dr        105 |ar:       8095 | acc:        116 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        311 | ip:          8 | dr          8 |ar:       8095 | acc:        116 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        316 | ip:          9 | dr        116 |ar:       8095 | acc:        116 | sp:       8093
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        320 | ip:         10 | dr          0 |ar:       8095 | acc:        116 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.JB | tick:        324 | ip:         11 | dr         26 |ar:       8095 | acc:        116 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        328 | ip:         12 | dr       4097 |ar:       8095 | acc:       4097 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        331 | ip:         13 | dr       4097 |ar:       8095 | acc:       4097 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        337 | ip:         14 | dr         68 |ar:       4097 | acc:         68 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        341 | ip:         15 | dr          0 |ar:       4097 | acc:         68 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        345 | ip:         16 | dr         20 |ar:       4097 | acc:         68 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        350 | ip:         17 | dr       4097 |ar:       4097 | acc:       4097 | sp:       8093
-INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        353 | ip:         18 | dr       4097 |ar:       4097 | acc:       4098 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        356 | ip:         19 | dr       4097 |ar:       4097 | acc:       4098 | sp:       8092
-INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        360 | ip:         13 | dr         13 |ar:       4097 | acc:       4098 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        366 | ip:         14 | dr        109 |ar:       4098 | acc:        109 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        370 | ip:         15 | dr          0 |ar:       4098 | acc:        109 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        374 | ip:         16 | dr         20 |ar:       4098 | acc:        109 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        379 | ip:         17 | dr       4098 |ar:       4098 | acc:       4098 | sp:       8093
-INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        382 | ip:         18 | dr       4098 |ar:       4098 | acc:       4099 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        385 | ip:         19 | dr       4098 |ar:       4098 | acc:       4099 | sp:       8092
-INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        389 | ip:         13 | dr         13 |ar:       4098 | acc:       4099 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        395 | ip:         14 | dr        105 |ar:       4099 | acc:        105 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        399 | ip:         15 | dr          0 |ar:       4099 | acc:        105 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        403 | ip:         16 | dr         20 |ar:       4099 | acc:        105 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        408 | ip:         17 | dr       4099 |ar:       4099 | acc:       4099 | sp:       8093
-INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        411 | ip:         18 | dr       4099 |ar:       4099 | acc:       4100 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        414 | ip:         19 | dr       4099 |ar:       4099 | acc:       4100 | sp:       8092
-INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        418 | ip:         13 | dr         13 |ar:       4099 | acc:       4100 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        424 | ip:         14 | dr          0 |ar:       4100 | acc:          0 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        428 | ip:         15 | dr          0 |ar:       4100 | acc:          0 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        433 | ip:         20 | dr         20 |ar:       4100 | acc:          0 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        438 | ip:         21 | dr        116 |ar:       8095 | acc:        116 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.ST | tick:        444 | ip:         22 | dr          0 |ar:       4100 | acc:        116 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        449 | ip:         23 | dr       4100 |ar:       4100 | acc:       4100 | sp:       8093
-DEBUG   datapath:get_char_from_device INPUT-> r
-INFO    controlunit:microcode_handler execute_command     Opcode.READ | tick:        453 | ip:         24 | dr       4100 |ar:       4100 | acc:        114 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.ST | tick:        458 | ip:         25 | dr        116 |ar:       8095 | acc:        114 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        462 | ip:          8 | dr          8 |ar:       8095 | acc:        114 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        467 | ip:          9 | dr        114 |ar:       8095 | acc:        114 | sp:       8093
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        471 | ip:         10 | dr          0 |ar:       8095 | acc:        114 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.JB | tick:        475 | ip:         11 | dr         26 |ar:       8095 | acc:        114 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        479 | ip:         12 | dr       4097 |ar:       8095 | acc:       4097 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        482 | ip:         13 | dr       4097 |ar:       8095 | acc:       4097 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        488 | ip:         14 | dr         68 |ar:       4097 | acc:         68 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        492 | ip:         15 | dr          0 |ar:       4097 | acc:         68 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        496 | ip:         16 | dr         20 |ar:       4097 | acc:         68 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        501 | ip:         17 | dr       4097 |ar:       4097 | acc:       4097 | sp:       8093
-INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        504 | ip:         18 | dr       4097 |ar:       4097 | acc:       4098 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        507 | ip:         19 | dr       4097 |ar:       4097 | acc:       4098 | sp:       8092
-INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        511 | ip:         13 | dr         13 |ar:       4097 | acc:       4098 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        517 | ip:         14 | dr        109 |ar:       4098 | acc:        109 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        521 | ip:         15 | dr          0 |ar:       4098 | acc:        109 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        525 | ip:         16 | dr         20 |ar:       4098 | acc:        109 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        530 | ip:         17 | dr       4098 |ar:       4098 | acc:       4098 | sp:       8093
-INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        533 | ip:         18 | dr       4098 |ar:       4098 | acc:       4099 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        536 | ip:         19 | dr       4098 |ar:       4098 | acc:       4099 | sp:       8092
-INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        540 | ip:         13 | dr         13 |ar:       4098 | acc:       4099 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        546 | ip:         14 | dr        105 |ar:       4099 | acc:        105 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        550 | ip:         15 | dr          0 |ar:       4099 | acc:        105 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        554 | ip:         16 | dr         20 |ar:       4099 | acc:        105 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        559 | ip:         17 | dr       4099 |ar:       4099 | acc:       4099 | sp:       8093
-INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        562 | ip:         18 | dr       4099 |ar:       4099 | acc:       4100 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        565 | ip:         19 | dr       4099 |ar:       4099 | acc:       4100 | sp:       8092
-INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        569 | ip:         13 | dr         13 |ar:       4099 | acc:       4100 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        575 | ip:         14 | dr        116 |ar:       4100 | acc:        116 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        579 | ip:         15 | dr          0 |ar:       4100 | acc:        116 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        583 | ip:         16 | dr         20 |ar:       4100 | acc:        116 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        588 | ip:         17 | dr       4100 |ar:       4100 | acc:       4100 | sp:       8093
-INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        591 | ip:         18 | dr       4100 |ar:       4100 | acc:       4101 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        594 | ip:         19 | dr       4100 |ar:       4100 | acc:       4101 | sp:       8092
-INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        598 | ip:         13 | dr         13 |ar:       4100 | acc:       4101 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        604 | ip:         14 | dr          0 |ar:       4101 | acc:          0 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        608 | ip:         15 | dr          0 |ar:       4101 | acc:          0 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        613 | ip:         20 | dr         20 |ar:       4101 | acc:          0 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        618 | ip:         21 | dr        114 |ar:       8095 | acc:        114 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.ST | tick:        624 | ip:         22 | dr          0 |ar:       4101 | acc:        114 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        629 | ip:         23 | dr       4101 |ar:       4101 | acc:       4101 | sp:       8093
-DEBUG   datapath:get_char_from_device INPUT-> y
-INFO    controlunit:microcode_handler execute_command     Opcode.READ | tick:        633 | ip:         24 | dr       4101 |ar:       4101 | acc:        121 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.ST | tick:        638 | ip:         25 | dr        114 |ar:       8095 | acc:        121 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        642 | ip:          8 | dr          8 |ar:       8095 | acc:        121 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        647 | ip:          9 | dr        121 |ar:       8095 | acc:        121 | sp:       8093
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        651 | ip:         10 | dr          0 |ar:       8095 | acc:        121 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.JB | tick:        655 | ip:         11 | dr         26 |ar:       8095 | acc:        121 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        659 | ip:         12 | dr       4097 |ar:       8095 | acc:       4097 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        662 | ip:         13 | dr       4097 |ar:       8095 | acc:       4097 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        668 | ip:         14 | dr         68 |ar:       4097 | acc:         68 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        672 | ip:         15 | dr          0 |ar:       4097 | acc:         68 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        676 | ip:         16 | dr         20 |ar:       4097 | acc:         68 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        681 | ip:         17 | dr       4097 |ar:       4097 | acc:       4097 | sp:       8093
-INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        684 | ip:         18 | dr       4097 |ar:       4097 | acc:       4098 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        687 | ip:         19 | dr       4097 |ar:       4097 | acc:       4098 | sp:       8092
-INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        691 | ip:         13 | dr         13 |ar:       4097 | acc:       4098 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        697 | ip:         14 | dr        109 |ar:       4098 | acc:        109 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        701 | ip:         15 | dr          0 |ar:       4098 | acc:        109 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        705 | ip:         16 | dr         20 |ar:       4098 | acc:        109 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        710 | ip:         17 | dr       4098 |ar:       4098 | acc:       4098 | sp:       8093
-INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        713 | ip:         18 | dr       4098 |ar:       4098 | acc:       4099 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        716 | ip:         19 | dr       4098 |ar:       4098 | acc:       4099 | sp:       8092
-INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        720 | ip:         13 | dr         13 |ar:       4098 | acc:       4099 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        726 | ip:         14 | dr        105 |ar:       4099 | acc:        105 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        730 | ip:         15 | dr          0 |ar:       4099 | acc:        105 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        734 | ip:         16 | dr         20 |ar:       4099 | acc:        105 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        739 | ip:         17 | dr       4099 |ar:       4099 | acc:       4099 | sp:       8093
-INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        742 | ip:         18 | dr       4099 |ar:       4099 | acc:       4100 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        745 | ip:         19 | dr       4099 |ar:       4099 | acc:       4100 | sp:       8092
-INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        749 | ip:         13 | dr         13 |ar:       4099 | acc:       4100 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        755 | ip:         14 | dr        116 |ar:       4100 | acc:        116 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        759 | ip:         15 | dr          0 |ar:       4100 | acc:        116 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        763 | ip:         16 | dr         20 |ar:       4100 | acc:        116 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        768 | ip:         17 | dr       4100 |ar:       4100 | acc:       4100 | sp:       8093
-INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        771 | ip:         18 | dr       4100 |ar:       4100 | acc:       4101 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        774 | ip:         19 | dr       4100 |ar:       4100 | acc:       4101 | sp:       8092
-INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        778 | ip:         13 | dr         13 |ar:       4100 | acc:       4101 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        784 | ip:         14 | dr        114 |ar:       4101 | acc:        114 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        788 | ip:         15 | dr          0 |ar:       4101 | acc:        114 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        792 | ip:         16 | dr         20 |ar:       4101 | acc:        114 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        797 | ip:         17 | dr       4101 |ar:       4101 | acc:       4101 | sp:       8093
-INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        800 | ip:         18 | dr       4101 |ar:       4101 | acc:       4102 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        803 | ip:         19 | dr       4101 |ar:       4101 | acc:       4102 | sp:       8092
-INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        807 | ip:         13 | dr         13 |ar:       4101 | acc:       4102 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        813 | ip:         14 | dr          0 |ar:       4102 | acc:          0 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        817 | ip:         15 | dr          0 |ar:       4102 | acc:          0 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        822 | ip:         20 | dr         20 |ar:       4102 | acc:          0 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        827 | ip:         21 | dr        121 |ar:       8095 | acc:        121 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.ST | tick:        833 | ip:         22 | dr          0 |ar:       4102 | acc:        121 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        838 | ip:         23 | dr       4102 |ar:       4102 | acc:       4102 | sp:       8093
-DEBUG   datapath:get_char_from_device INPUT->  
-INFO    controlunit:microcode_handler execute_command     Opcode.READ | tick:        842 | ip:         24 | dr       4102 |ar:       4102 | acc:          0 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.ST | tick:        847 | ip:         25 | dr        121 |ar:       8095 | acc:          0 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        851 | ip:          8 | dr          8 |ar:       8095 | acc:          0 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        856 | ip:          9 | dr          0 |ar:       8095 | acc:          0 | sp:       8093
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        860 | ip:         10 | dr          0 |ar:       8095 | acc:          0 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.JB | tick:        865 | ip:         26 | dr         26 |ar:       8095 | acc:          0 | sp:       8093
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        869 | ip:         27 | dr       4097 |ar:       8095 | acc:       4097 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        872 | ip:         28 | dr       4097 |ar:       8095 | acc:       4097 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        878 | ip:         29 | dr         68 |ar:       4097 | acc:         68 | sp:       8092
-DEBUG   datapath:output         <- D
-INFO    controlunit:microcode_handler execute_command    Opcode.PRINT | tick:        881 | ip:         30 | dr         68 |ar:       4097 | acc:         68 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        885 | ip:         31 | dr          0 |ar:       4097 | acc:         68 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        889 | ip:         32 | dr         36 |ar:       4097 | acc:         68 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        894 | ip:         33 | dr       4097 |ar:       4097 | acc:       4097 | sp:       8093
-INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        897 | ip:         34 | dr       4097 |ar:       4097 | acc:       4098 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        900 | ip:         35 | dr       4097 |ar:       4097 | acc:       4098 | sp:       8092
-INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        904 | ip:         28 | dr         28 |ar:       4097 | acc:       4098 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        910 | ip:         29 | dr        109 |ar:       4098 | acc:        109 | sp:       8092
-DEBUG   datapath:output        D <- m
-INFO    controlunit:microcode_handler execute_command    Opcode.PRINT | tick:        913 | ip:         30 | dr        109 |ar:       4098 | acc:        109 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        917 | ip:         31 | dr          0 |ar:       4098 | acc:        109 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        921 | ip:         32 | dr         36 |ar:       4098 | acc:        109 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        926 | ip:         33 | dr       4098 |ar:       4098 | acc:       4098 | sp:       8093
-INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        929 | ip:         34 | dr       4098 |ar:       4098 | acc:       4099 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        932 | ip:         35 | dr       4098 |ar:       4098 | acc:       4099 | sp:       8092
-INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        936 | ip:         28 | dr         28 |ar:       4098 | acc:       4099 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        942 | ip:         29 | dr        105 |ar:       4099 | acc:        105 | sp:       8092
-DEBUG   datapath:output        Dm <- i
-INFO    controlunit:microcode_handler execute_command    Opcode.PRINT | tick:        945 | ip:         30 | dr        105 |ar:       4099 | acc:        105 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        949 | ip:         31 | dr          0 |ar:       4099 | acc:        105 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        953 | ip:         32 | dr         36 |ar:       4099 | acc:        105 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        958 | ip:         33 | dr       4099 |ar:       4099 | acc:       4099 | sp:       8093
-INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        961 | ip:         34 | dr       4099 |ar:       4099 | acc:       4100 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        964 | ip:         35 | dr       4099 |ar:       4099 | acc:       4100 | sp:       8092
-INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        968 | ip:         28 | dr         28 |ar:       4099 | acc:       4100 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        974 | ip:         29 | dr        116 |ar:       4100 | acc:        116 | sp:       8092
-DEBUG   datapath:output        Dmi <- t
-INFO    controlunit:microcode_handler execute_command    Opcode.PRINT | tick:        977 | ip:         30 | dr        116 |ar:       4100 | acc:        116 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        981 | ip:         31 | dr          0 |ar:       4100 | acc:        116 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        985 | ip:         32 | dr         36 |ar:       4100 | acc:        116 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        990 | ip:         33 | dr       4100 |ar:       4100 | acc:       4100 | sp:       8093
-INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        993 | ip:         34 | dr       4100 |ar:       4100 | acc:       4101 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        996 | ip:         35 | dr       4100 |ar:       4100 | acc:       4101 | sp:       8092
-INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:       1000 | ip:         28 | dr         28 |ar:       4100 | acc:       4101 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:       1006 | ip:         29 | dr        114 |ar:       4101 | acc:        114 | sp:       8092
-DEBUG   datapath:output        Dmit <- r
-INFO    controlunit:microcode_handler execute_command    Opcode.PRINT | tick:       1009 | ip:         30 | dr        114 |ar:       4101 | acc:        114 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:       1013 | ip:         31 | dr          0 |ar:       4101 | acc:        114 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:       1017 | ip:         32 | dr         36 |ar:       4101 | acc:        114 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:       1022 | ip:         33 | dr       4101 |ar:       4101 | acc:       4101 | sp:       8093
-INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:       1025 | ip:         34 | dr       4101 |ar:       4101 | acc:       4102 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:       1028 | ip:         35 | dr       4101 |ar:       4101 | acc:       4102 | sp:       8092
-INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:       1032 | ip:         28 | dr         28 |ar:       4101 | acc:       4102 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:       1038 | ip:         29 | dr        121 |ar:       4102 | acc:        121 | sp:       8092
-DEBUG   datapath:output        Dmitr <- y
-INFO    controlunit:microcode_handler execute_command    Opcode.PRINT | tick:       1041 | ip:         30 | dr        121 |ar:       4102 | acc:        121 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:       1045 | ip:         31 | dr          0 |ar:       4102 | acc:        121 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:       1049 | ip:         32 | dr         36 |ar:       4102 | acc:        121 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:       1054 | ip:         33 | dr       4102 |ar:       4102 | acc:       4102 | sp:       8093
-INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:       1057 | ip:         34 | dr       4102 |ar:       4102 | acc:       4103 | sp:       8093
-INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:       1060 | ip:         35 | dr       4102 |ar:       4102 | acc:       4103 | sp:       8092
-INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:       1064 | ip:         28 | dr         28 |ar:       4102 | acc:       4103 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:       1070 | ip:         29 | dr          0 |ar:       4103 | acc:          0 | sp:       8092
-INFO    controlunit:microcode_handler execute_command    Opcode.PRINT | tick:       1073 | ip:         30 | dr          0 |ar:       4103 | acc:          0 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:       1077 | ip:         31 | dr          0 |ar:       4103 | acc:          0 | sp:       8092
-INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:       1082 | ip:         36 | dr         36 |ar:       4103 | acc:          0 | sp:       8092
-INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:       1087 | ip:         37 | dr       4103 |ar:       4103 | acc:       4103 | sp:       8093
-DEBUG   datapath:output_the_buffer output: Dmitry
-INFO    processor:simulation    Simulation stop
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:          3 | ip:          1 | dr          0 |ar:          0 | acc:          0 | sp:       8095
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:          6 | ip:          2 | dr          0 |ar:          0 | acc:          0 | sp:       8094
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:          9 | ip:          3 | dr       4097 |ar:          0 | acc:       4097 | sp:       8094
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:         12 | ip:          4 | dr       4097 |ar:          0 | acc:       4097 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:         15 | ip:          5 | dr          0 |ar:          0 | acc:          0 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.ST | tick:         19 | ip:          6 | dr          0 |ar:       4097 | acc:          0 | sp:       8093
+  DEBUG   datapath:get_char_from_device INPUT-> D
+  INFO    controlunit:microcode_handler execute_command     Opcode.READ | tick:         23 | ip:          7 | dr          0 |ar:       4097 | acc:         68 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.ST | tick:         27 | ip:          8 | dr          0 |ar:       8095 | acc:         68 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:         31 | ip:          9 | dr         68 |ar:       8095 | acc:         68 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:         34 | ip:         10 | dr          0 |ar:       8095 | acc:         68 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.JB | tick:         37 | ip:         11 | dr         26 |ar:       8095 | acc:         68 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:         40 | ip:         12 | dr       4097 |ar:       8095 | acc:       4097 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:         43 | ip:         13 | dr       4097 |ar:       8095 | acc:       4097 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:         48 | ip:         14 | dr          0 |ar:       4097 | acc:          0 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:         51 | ip:         15 | dr          0 |ar:       4097 | acc:          0 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:         55 | ip:         20 | dr         20 |ar:       4097 | acc:          0 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:         59 | ip:         21 | dr         68 |ar:       8095 | acc:         68 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.ST | tick:         64 | ip:         22 | dr          0 |ar:       4097 | acc:         68 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:         69 | ip:         23 | dr       4097 |ar:       4097 | acc:       4097 | sp:       8093
+  DEBUG   datapath:get_char_from_device INPUT-> m
+  INFO    controlunit:microcode_handler execute_command     Opcode.READ | tick:         73 | ip:         24 | dr       4097 |ar:       4097 | acc:        109 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.ST | tick:         77 | ip:         25 | dr         68 |ar:       8095 | acc:        109 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:         80 | ip:          8 | dr          8 |ar:       8095 | acc:        109 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:         84 | ip:          9 | dr        109 |ar:       8095 | acc:        109 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:         87 | ip:         10 | dr          0 |ar:       8095 | acc:        109 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.JB | tick:         90 | ip:         11 | dr         26 |ar:       8095 | acc:        109 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:         93 | ip:         12 | dr       4097 |ar:       8095 | acc:       4097 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:         96 | ip:         13 | dr       4097 |ar:       8095 | acc:       4097 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        101 | ip:         14 | dr         68 |ar:       4097 | acc:         68 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        104 | ip:         15 | dr          0 |ar:       4097 | acc:         68 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        107 | ip:         16 | dr         20 |ar:       4097 | acc:         68 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        112 | ip:         17 | dr       4097 |ar:       4097 | acc:       4097 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        115 | ip:         18 | dr       4097 |ar:       4097 | acc:       4098 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        118 | ip:         19 | dr       4097 |ar:       4097 | acc:       4098 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        121 | ip:         13 | dr         13 |ar:       4097 | acc:       4098 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        126 | ip:         14 | dr          0 |ar:       4098 | acc:          0 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        129 | ip:         15 | dr          0 |ar:       4098 | acc:          0 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        133 | ip:         20 | dr         20 |ar:       4098 | acc:          0 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        137 | ip:         21 | dr        109 |ar:       8095 | acc:        109 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.ST | tick:        142 | ip:         22 | dr          0 |ar:       4098 | acc:        109 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        147 | ip:         23 | dr       4098 |ar:       4098 | acc:       4098 | sp:       8093
+  DEBUG   datapath:get_char_from_device INPUT-> i
+  INFO    controlunit:microcode_handler execute_command     Opcode.READ | tick:        151 | ip:         24 | dr       4098 |ar:       4098 | acc:        105 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.ST | tick:        155 | ip:         25 | dr        109 |ar:       8095 | acc:        105 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        158 | ip:          8 | dr          8 |ar:       8095 | acc:        105 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        162 | ip:          9 | dr        105 |ar:       8095 | acc:        105 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        165 | ip:         10 | dr          0 |ar:       8095 | acc:        105 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.JB | tick:        168 | ip:         11 | dr         26 |ar:       8095 | acc:        105 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        171 | ip:         12 | dr       4097 |ar:       8095 | acc:       4097 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        174 | ip:         13 | dr       4097 |ar:       8095 | acc:       4097 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        179 | ip:         14 | dr         68 |ar:       4097 | acc:         68 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        182 | ip:         15 | dr          0 |ar:       4097 | acc:         68 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        185 | ip:         16 | dr         20 |ar:       4097 | acc:         68 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        190 | ip:         17 | dr       4097 |ar:       4097 | acc:       4097 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        193 | ip:         18 | dr       4097 |ar:       4097 | acc:       4098 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        196 | ip:         19 | dr       4097 |ar:       4097 | acc:       4098 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        199 | ip:         13 | dr         13 |ar:       4097 | acc:       4098 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        204 | ip:         14 | dr        109 |ar:       4098 | acc:        109 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        207 | ip:         15 | dr          0 |ar:       4098 | acc:        109 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        210 | ip:         16 | dr         20 |ar:       4098 | acc:        109 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        215 | ip:         17 | dr       4098 |ar:       4098 | acc:       4098 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        218 | ip:         18 | dr       4098 |ar:       4098 | acc:       4099 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        221 | ip:         19 | dr       4098 |ar:       4098 | acc:       4099 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        224 | ip:         13 | dr         13 |ar:       4098 | acc:       4099 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        229 | ip:         14 | dr          0 |ar:       4099 | acc:          0 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        232 | ip:         15 | dr          0 |ar:       4099 | acc:          0 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        236 | ip:         20 | dr         20 |ar:       4099 | acc:          0 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        240 | ip:         21 | dr        105 |ar:       8095 | acc:        105 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.ST | tick:        245 | ip:         22 | dr          0 |ar:       4099 | acc:        105 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        250 | ip:         23 | dr       4099 |ar:       4099 | acc:       4099 | sp:       8093
+  DEBUG   datapath:get_char_from_device INPUT-> t
+  INFO    controlunit:microcode_handler execute_command     Opcode.READ | tick:        254 | ip:         24 | dr       4099 |ar:       4099 | acc:        116 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.ST | tick:        258 | ip:         25 | dr        105 |ar:       8095 | acc:        116 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        261 | ip:          8 | dr          8 |ar:       8095 | acc:        116 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        265 | ip:          9 | dr        116 |ar:       8095 | acc:        116 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        268 | ip:         10 | dr          0 |ar:       8095 | acc:        116 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.JB | tick:        271 | ip:         11 | dr         26 |ar:       8095 | acc:        116 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        274 | ip:         12 | dr       4097 |ar:       8095 | acc:       4097 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        277 | ip:         13 | dr       4097 |ar:       8095 | acc:       4097 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        282 | ip:         14 | dr         68 |ar:       4097 | acc:         68 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        285 | ip:         15 | dr          0 |ar:       4097 | acc:         68 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        288 | ip:         16 | dr         20 |ar:       4097 | acc:         68 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        293 | ip:         17 | dr       4097 |ar:       4097 | acc:       4097 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        296 | ip:         18 | dr       4097 |ar:       4097 | acc:       4098 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        299 | ip:         19 | dr       4097 |ar:       4097 | acc:       4098 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        302 | ip:         13 | dr         13 |ar:       4097 | acc:       4098 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        307 | ip:         14 | dr        109 |ar:       4098 | acc:        109 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        310 | ip:         15 | dr          0 |ar:       4098 | acc:        109 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        313 | ip:         16 | dr         20 |ar:       4098 | acc:        109 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        318 | ip:         17 | dr       4098 |ar:       4098 | acc:       4098 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        321 | ip:         18 | dr       4098 |ar:       4098 | acc:       4099 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        324 | ip:         19 | dr       4098 |ar:       4098 | acc:       4099 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        327 | ip:         13 | dr         13 |ar:       4098 | acc:       4099 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        332 | ip:         14 | dr        105 |ar:       4099 | acc:        105 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        335 | ip:         15 | dr          0 |ar:       4099 | acc:        105 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        338 | ip:         16 | dr         20 |ar:       4099 | acc:        105 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        343 | ip:         17 | dr       4099 |ar:       4099 | acc:       4099 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        346 | ip:         18 | dr       4099 |ar:       4099 | acc:       4100 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        349 | ip:         19 | dr       4099 |ar:       4099 | acc:       4100 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        352 | ip:         13 | dr         13 |ar:       4099 | acc:       4100 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        357 | ip:         14 | dr          0 |ar:       4100 | acc:          0 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        360 | ip:         15 | dr          0 |ar:       4100 | acc:          0 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        364 | ip:         20 | dr         20 |ar:       4100 | acc:          0 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        368 | ip:         21 | dr        116 |ar:       8095 | acc:        116 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.ST | tick:        373 | ip:         22 | dr          0 |ar:       4100 | acc:        116 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        378 | ip:         23 | dr       4100 |ar:       4100 | acc:       4100 | sp:       8093
+  DEBUG   datapath:get_char_from_device INPUT-> r
+  INFO    controlunit:microcode_handler execute_command     Opcode.READ | tick:        382 | ip:         24 | dr       4100 |ar:       4100 | acc:        114 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.ST | tick:        386 | ip:         25 | dr        116 |ar:       8095 | acc:        114 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        389 | ip:          8 | dr          8 |ar:       8095 | acc:        114 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        393 | ip:          9 | dr        114 |ar:       8095 | acc:        114 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        396 | ip:         10 | dr          0 |ar:       8095 | acc:        114 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.JB | tick:        399 | ip:         11 | dr         26 |ar:       8095 | acc:        114 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        402 | ip:         12 | dr       4097 |ar:       8095 | acc:       4097 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        405 | ip:         13 | dr       4097 |ar:       8095 | acc:       4097 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        410 | ip:         14 | dr         68 |ar:       4097 | acc:         68 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        413 | ip:         15 | dr          0 |ar:       4097 | acc:         68 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        416 | ip:         16 | dr         20 |ar:       4097 | acc:         68 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        421 | ip:         17 | dr       4097 |ar:       4097 | acc:       4097 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        424 | ip:         18 | dr       4097 |ar:       4097 | acc:       4098 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        427 | ip:         19 | dr       4097 |ar:       4097 | acc:       4098 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        430 | ip:         13 | dr         13 |ar:       4097 | acc:       4098 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        435 | ip:         14 | dr        109 |ar:       4098 | acc:        109 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        438 | ip:         15 | dr          0 |ar:       4098 | acc:        109 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        441 | ip:         16 | dr         20 |ar:       4098 | acc:        109 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        446 | ip:         17 | dr       4098 |ar:       4098 | acc:       4098 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        449 | ip:         18 | dr       4098 |ar:       4098 | acc:       4099 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        452 | ip:         19 | dr       4098 |ar:       4098 | acc:       4099 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        455 | ip:         13 | dr         13 |ar:       4098 | acc:       4099 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        460 | ip:         14 | dr        105 |ar:       4099 | acc:        105 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        463 | ip:         15 | dr          0 |ar:       4099 | acc:        105 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        466 | ip:         16 | dr         20 |ar:       4099 | acc:        105 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        471 | ip:         17 | dr       4099 |ar:       4099 | acc:       4099 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        474 | ip:         18 | dr       4099 |ar:       4099 | acc:       4100 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        477 | ip:         19 | dr       4099 |ar:       4099 | acc:       4100 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        480 | ip:         13 | dr         13 |ar:       4099 | acc:       4100 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        485 | ip:         14 | dr        116 |ar:       4100 | acc:        116 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        488 | ip:         15 | dr          0 |ar:       4100 | acc:        116 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        491 | ip:         16 | dr         20 |ar:       4100 | acc:        116 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        496 | ip:         17 | dr       4100 |ar:       4100 | acc:       4100 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        499 | ip:         18 | dr       4100 |ar:       4100 | acc:       4101 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        502 | ip:         19 | dr       4100 |ar:       4100 | acc:       4101 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        505 | ip:         13 | dr         13 |ar:       4100 | acc:       4101 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        510 | ip:         14 | dr          0 |ar:       4101 | acc:          0 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        513 | ip:         15 | dr          0 |ar:       4101 | acc:          0 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        517 | ip:         20 | dr         20 |ar:       4101 | acc:          0 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        521 | ip:         21 | dr        114 |ar:       8095 | acc:        114 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.ST | tick:        526 | ip:         22 | dr          0 |ar:       4101 | acc:        114 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        531 | ip:         23 | dr       4101 |ar:       4101 | acc:       4101 | sp:       8093
+  DEBUG   datapath:get_char_from_device INPUT-> y
+  INFO    controlunit:microcode_handler execute_command     Opcode.READ | tick:        535 | ip:         24 | dr       4101 |ar:       4101 | acc:        121 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.ST | tick:        539 | ip:         25 | dr        114 |ar:       8095 | acc:        121 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        542 | ip:          8 | dr          8 |ar:       8095 | acc:        121 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        546 | ip:          9 | dr        121 |ar:       8095 | acc:        121 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        549 | ip:         10 | dr          0 |ar:       8095 | acc:        121 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.JB | tick:        552 | ip:         11 | dr         26 |ar:       8095 | acc:        121 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        555 | ip:         12 | dr       4097 |ar:       8095 | acc:       4097 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        558 | ip:         13 | dr       4097 |ar:       8095 | acc:       4097 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        563 | ip:         14 | dr         68 |ar:       4097 | acc:         68 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        566 | ip:         15 | dr          0 |ar:       4097 | acc:         68 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        569 | ip:         16 | dr         20 |ar:       4097 | acc:         68 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        574 | ip:         17 | dr       4097 |ar:       4097 | acc:       4097 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        577 | ip:         18 | dr       4097 |ar:       4097 | acc:       4098 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        580 | ip:         19 | dr       4097 |ar:       4097 | acc:       4098 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        583 | ip:         13 | dr         13 |ar:       4097 | acc:       4098 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        588 | ip:         14 | dr        109 |ar:       4098 | acc:        109 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        591 | ip:         15 | dr          0 |ar:       4098 | acc:        109 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        594 | ip:         16 | dr         20 |ar:       4098 | acc:        109 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        599 | ip:         17 | dr       4098 |ar:       4098 | acc:       4098 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        602 | ip:         18 | dr       4098 |ar:       4098 | acc:       4099 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        605 | ip:         19 | dr       4098 |ar:       4098 | acc:       4099 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        608 | ip:         13 | dr         13 |ar:       4098 | acc:       4099 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        613 | ip:         14 | dr        105 |ar:       4099 | acc:        105 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        616 | ip:         15 | dr          0 |ar:       4099 | acc:        105 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        619 | ip:         16 | dr         20 |ar:       4099 | acc:        105 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        624 | ip:         17 | dr       4099 |ar:       4099 | acc:       4099 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        627 | ip:         18 | dr       4099 |ar:       4099 | acc:       4100 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        630 | ip:         19 | dr       4099 |ar:       4099 | acc:       4100 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        633 | ip:         13 | dr         13 |ar:       4099 | acc:       4100 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        638 | ip:         14 | dr        116 |ar:       4100 | acc:        116 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        641 | ip:         15 | dr          0 |ar:       4100 | acc:        116 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        644 | ip:         16 | dr         20 |ar:       4100 | acc:        116 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        649 | ip:         17 | dr       4100 |ar:       4100 | acc:       4100 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        652 | ip:         18 | dr       4100 |ar:       4100 | acc:       4101 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        655 | ip:         19 | dr       4100 |ar:       4100 | acc:       4101 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        658 | ip:         13 | dr         13 |ar:       4100 | acc:       4101 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        663 | ip:         14 | dr        114 |ar:       4101 | acc:        114 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        666 | ip:         15 | dr          0 |ar:       4101 | acc:        114 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        669 | ip:         16 | dr         20 |ar:       4101 | acc:        114 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        674 | ip:         17 | dr       4101 |ar:       4101 | acc:       4101 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        677 | ip:         18 | dr       4101 |ar:       4101 | acc:       4102 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        680 | ip:         19 | dr       4101 |ar:       4101 | acc:       4102 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        683 | ip:         13 | dr         13 |ar:       4101 | acc:       4102 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        688 | ip:         14 | dr          0 |ar:       4102 | acc:          0 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        691 | ip:         15 | dr          0 |ar:       4102 | acc:          0 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        695 | ip:         20 | dr         20 |ar:       4102 | acc:          0 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        699 | ip:         21 | dr        121 |ar:       8095 | acc:        121 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.ST | tick:        704 | ip:         22 | dr          0 |ar:       4102 | acc:        121 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        709 | ip:         23 | dr       4102 |ar:       4102 | acc:       4102 | sp:       8093
+  DEBUG   datapath:get_char_from_device INPUT 0
+  INFO    controlunit:microcode_handler execute_command     Opcode.READ | tick:        713 | ip:         24 | dr       4102 |ar:       4102 | acc:          0 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.ST | tick:        717 | ip:         25 | dr        121 |ar:       8095 | acc:          0 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        720 | ip:          8 | dr          8 |ar:       8095 | acc:          0 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        724 | ip:          9 | dr          0 |ar:       8095 | acc:          0 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        727 | ip:         10 | dr          0 |ar:       8095 | acc:          0 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.JB | tick:        731 | ip:         26 | dr         26 |ar:       8095 | acc:          0 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        734 | ip:         27 | dr       4097 |ar:       8095 | acc:       4097 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        737 | ip:         28 | dr       4097 |ar:       8095 | acc:       4097 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        742 | ip:         29 | dr         68 |ar:       4097 | acc:         68 | sp:       8092
+  DEBUG   datapath:output         <- D
+  INFO    controlunit:microcode_handler execute_command    Opcode.PRINT | tick:        745 | ip:         30 | dr         68 |ar:       4097 | acc:         68 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        748 | ip:         31 | dr          0 |ar:       4097 | acc:         68 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        751 | ip:         32 | dr         36 |ar:       4097 | acc:         68 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        756 | ip:         33 | dr       4097 |ar:       4097 | acc:       4097 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        759 | ip:         34 | dr       4097 |ar:       4097 | acc:       4098 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        762 | ip:         35 | dr       4097 |ar:       4097 | acc:       4098 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        765 | ip:         28 | dr         28 |ar:       4097 | acc:       4098 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        770 | ip:         29 | dr        109 |ar:       4098 | acc:        109 | sp:       8092
+  DEBUG   datapath:output        D <- m
+  INFO    controlunit:microcode_handler execute_command    Opcode.PRINT | tick:        773 | ip:         30 | dr        109 |ar:       4098 | acc:        109 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        776 | ip:         31 | dr          0 |ar:       4098 | acc:        109 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        779 | ip:         32 | dr         36 |ar:       4098 | acc:        109 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        784 | ip:         33 | dr       4098 |ar:       4098 | acc:       4098 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        787 | ip:         34 | dr       4098 |ar:       4098 | acc:       4099 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        790 | ip:         35 | dr       4098 |ar:       4098 | acc:       4099 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        793 | ip:         28 | dr         28 |ar:       4098 | acc:       4099 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        798 | ip:         29 | dr        105 |ar:       4099 | acc:        105 | sp:       8092
+  DEBUG   datapath:output        Dm <- i
+  INFO    controlunit:microcode_handler execute_command    Opcode.PRINT | tick:        801 | ip:         30 | dr        105 |ar:       4099 | acc:        105 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        804 | ip:         31 | dr          0 |ar:       4099 | acc:        105 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        807 | ip:         32 | dr         36 |ar:       4099 | acc:        105 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        812 | ip:         33 | dr       4099 |ar:       4099 | acc:       4099 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        815 | ip:         34 | dr       4099 |ar:       4099 | acc:       4100 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        818 | ip:         35 | dr       4099 |ar:       4099 | acc:       4100 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        821 | ip:         28 | dr         28 |ar:       4099 | acc:       4100 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        826 | ip:         29 | dr        116 |ar:       4100 | acc:        116 | sp:       8092
+  DEBUG   datapath:output        Dmi <- t
+  INFO    controlunit:microcode_handler execute_command    Opcode.PRINT | tick:        829 | ip:         30 | dr        116 |ar:       4100 | acc:        116 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        832 | ip:         31 | dr          0 |ar:       4100 | acc:        116 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        835 | ip:         32 | dr         36 |ar:       4100 | acc:        116 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        840 | ip:         33 | dr       4100 |ar:       4100 | acc:       4100 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        843 | ip:         34 | dr       4100 |ar:       4100 | acc:       4101 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        846 | ip:         35 | dr       4100 |ar:       4100 | acc:       4101 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        849 | ip:         28 | dr         28 |ar:       4100 | acc:       4101 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        854 | ip:         29 | dr        114 |ar:       4101 | acc:        114 | sp:       8092
+  DEBUG   datapath:output        Dmit <- r
+  INFO    controlunit:microcode_handler execute_command    Opcode.PRINT | tick:        857 | ip:         30 | dr        114 |ar:       4101 | acc:        114 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        860 | ip:         31 | dr          0 |ar:       4101 | acc:        114 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        863 | ip:         32 | dr         36 |ar:       4101 | acc:        114 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        868 | ip:         33 | dr       4101 |ar:       4101 | acc:       4101 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        871 | ip:         34 | dr       4101 |ar:       4101 | acc:       4102 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        874 | ip:         35 | dr       4101 |ar:       4101 | acc:       4102 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        877 | ip:         28 | dr         28 |ar:       4101 | acc:       4102 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        882 | ip:         29 | dr        121 |ar:       4102 | acc:        121 | sp:       8092
+  DEBUG   datapath:output        Dmitr <- y
+  INFO    controlunit:microcode_handler execute_command    Opcode.PRINT | tick:        885 | ip:         30 | dr        121 |ar:       4102 | acc:        121 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        888 | ip:         31 | dr          0 |ar:       4102 | acc:        121 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        891 | ip:         32 | dr         36 |ar:       4102 | acc:        121 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        896 | ip:         33 | dr       4102 |ar:       4102 | acc:       4102 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command      Opcode.INC | tick:        899 | ip:         34 | dr       4102 |ar:       4102 | acc:       4103 | sp:       8093
+  INFO    controlunit:microcode_handler execute_command     Opcode.PUSH | tick:        902 | ip:         35 | dr       4102 |ar:       4102 | acc:       4103 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command     Opcode.JUMP | tick:        905 | ip:         28 | dr         28 |ar:       4102 | acc:       4103 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:        910 | ip:         29 | dr          0 |ar:       4103 | acc:          0 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command    Opcode.PRINT | tick:        913 | ip:         30 | dr          0 |ar:       4103 | acc:          0 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.CMP | tick:        916 | ip:         31 | dr          0 |ar:       4103 | acc:          0 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:        920 | ip:         36 | dr         36 |ar:       4103 | acc:          0 | sp:       8092
+  INFO    controlunit:microcode_handler execute_command      Opcode.POP | tick:        925 | ip:         37 | dr       4103 |ar:       4103 | acc:       4103 | sp:       8093
+  DEBUG   datapath:output_the_buffer output: Dmitry
+  INFO    processor:simulation    Simulation stop
 ```
 
 ```text  
 | ФИО                    | алг             | LoC | code байт | code инстр. | инстр.   | такт.   | вариант                                                                     |
 | Бугаев Сергей Юрьевич  | hello_world     | 1   | -         | 24          | 117      | 352     | alg | acc | neum | mc | tick | struct | stream | port | cstr | prob1 | 8bit |
-| Бугаев Сергей Юрьевич  | cat             | 7   | -         | 37          | 203      | 699     | alg | acc | neum | mc | tick | struct | stream | port | cstr | prob1 | 8bit |
-| Бугаев Сергей Юрьевич  | hello_user      | 11  | -         | 100         | 466      | 1509    | alg | acc | neum | mc | tick | struct | stream | port | cstr | prob1 | 8bit |
-| Бугаев Сергей Юрьевич  | prob1           | 14  | -         | 53          | 28523    | 127049  | alg | acc | neum | mc | tick | struct | stream | port | cstr | prob1 | 8bit |
+| Бугаев Сергей Юрьевич  | cat             | 7   | -         | 37          | 268      | 925     | alg | acc | neum | mc | tick | struct | stream | port | cstr | prob1 | 8bit |
+| Бугаев Сергей Юрьевич  | hello_user      | 11  | -         | 100         | 532      | 1753    | alg | acc | neum | mc | tick | struct | stream | port | cstr | prob1 | 8bit |
+| Бугаев Сергей Юрьевич  | prob1           | 14  | -         | 53          | 28523    | 102917  | alg | acc | neum | mc | tick | struct | stream | port | cstr | prob1 | 8bit |
 ```
 
 > где:
