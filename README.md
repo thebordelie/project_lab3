@@ -234,7 +234,7 @@ ___
 - `calculate` -- выполнить операцию на АЛУ
 - `get_flags` -- Получить флаги с АЛУ
 
-Селекторы для мультиплексоров реализованы с помощью Enum в [machine](machine/data_path.py) классом Selector
+Селекторы для мультиплексоров реализованы с помощью Enum в [machine](machine/datapath.py) классом Selector
 
 Флаги:
 - `N` (negative) -- результат в алу содержит отрицательное число
@@ -278,7 +278,7 @@ ___
       - DECODE_OP_FETCH -- декодировать цикл выборки операнда
       - DECODE_COMMAND -- декодировать исполнение команды
     - **latch_mPC** -- защёлкнуть счётчик микрокоманд
-- Класс MicrocodeMemory в [Control unit](machine/control_unit.py) представляет собой память микроинструкций, на каждом такте происходит считывание очередной микроинструкции и отправки нужных сигналов в DataPath
+- Класс MicrocodeMemory в [Control unit](machine/controlunit.py) представляет собой память микроинструкций, на каждом такте происходит считывание очередной микроинструкции и отправки нужных сигналов в DataPath
   - 0 ячейка - Instruction Fetch
   - 1-7 ячейка - Operand Fetch
   - 8-20 ячейки - Выполнение команды
@@ -295,10 +295,10 @@ ___
 
 Реализованные программы:
 
-1. [hello_world](./examples/hello_world.lab3) -- печатаем 'Hello, World!'
-1. [cat](./examples/cat.lab3) --  программа cat, повторяем ввод на выводе
-1. [hello_usr](./examples/hello_user.lab3) -- запросить у пользователя его имя, считать его, вывести на экран приветствие
-1. [prob1](./examples/prob1.lab3) --  сумма всех чисел, кратных 3 или 5, меньше 1000.
+1. [hello_world](./examples/hello_world.yml) -- печатаем 'Hello, World!'
+1. [cat](./examples/cat.yml) --  программа cat, повторяем ввод на выводе
+1. [hello_usr](./examples/hello_user.yml) -- запросить у пользователя его имя, считать его, вывести на экран приветствие
+1. [prob1](./examples/prob1.yml) --  сумма всех чисел, кратных 3 или 5, меньше 1000.
 
 Интеграционные тесты реализованы в [integration_test](./integration_test.py):
 
