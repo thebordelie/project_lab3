@@ -28,7 +28,7 @@ ___
 
 <program_line> ::= <variable declaration> | <conditional operator> | <loop> | <input> | <output>
 
-<variable declaration> ::= [<type>] ["["<integer constant>"]"] <identifier> "=" <expression> ;
+<variable declaration> ::= [<type>] <identifier> ["["<integer constant>"]"] "=" <expression> ;
 
 <type> :: = int | str
 
@@ -209,7 +209,7 @@ ___
 
 ![DataPath](./img/datapath.png)
 
-Реализован в [machine](machine/data_path.py).
+Реализован в [machine](machine/datapath.py).
 
 Регистры (соответствуют регистрам на схеме):
 
@@ -244,7 +244,7 @@ ___
 
 ![control_unit](./img/control_unit.png)
 
-Реализован в [machine](machine/control_unit.py).
+Реализован в [machine](machine/controlunit.py).
 - Получает из DataPath команду, декодирует её
 - Выполняет микрокод:
   - Включает в себя сигналы и мультиплексоры для DataPath
@@ -295,10 +295,10 @@ ___
 
 Реализованные программы:
 
-1. [hello_world](./examples/hello_world.yml) -- печатаем 'Hello, World!'
-1. [cat](./examples/cat.yml) --  программа cat, повторяем ввод на выводе
-1. [hello_usr](./examples/hello_user.yml) -- запросить у пользователя его имя, считать его, вывести на экран приветствие
-1. [prob1](./examples/prob1.yml) --  сумма всех чисел, кратных 3 или 5, меньше 1000.
+1. [hello_world](./golden/hello_world.yml) -- печатаем 'Hello, World!'
+1. [cat](./golden/cat.yml) --  программа cat, повторяем ввод на выводе
+1. [hello_usr](./golden/hello_user.yml) -- запросить у пользователя его имя, считать его, вывести на экран приветствие
+1. [prob1](./golden/prob1.yml) --  сумма всех чисел, кратных 3 или 5, меньше 1000.
 
 Интеграционные тесты реализованы в [integration_test](./integration_test.py):
 
