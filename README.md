@@ -242,7 +242,7 @@ ___
 
 **ControlUnit**
 
-![control_unit](./img/control_unit.png)
+![control_unit](./img/controlunit.png)
 
 Реализован в [machine](machine/controlunit.py).
 - Получает из DataPath команду, декодирует её
