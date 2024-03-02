@@ -611,7 +611,6 @@ out_log: |-
   INFO    controlunit:microcode_handler execute_command       Opcode.JE | tick:       1528 | ip:        129 | dr        129 |ar:        118 | acc:          0 | sp:       8089
   DEBUG   datapath:output_the_buffer output: What is your name? Hello, Sreegy!
   INFO    processor:simulation    Simulation stop
-  What is your name? Hello, Sreegy!
 
 
 
