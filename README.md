@@ -421,59 +421,6 @@ Sergey
 
 - Журнал работы:
 ```
-in_source: |-
-  int n = 0;
-  str a [20] = '';
-  read(n);
-  while (n>0) {
-      a = a + n;
-      read(n);
-  }
-  print(a);
-in_stdin: |-
-  Sergey
-out_code: |-
-  [{"index": 0, "opcode": "Opcode.LD", "arg1": "#", "arg2": 0},
-  {"index": 1, "opcode": "Opcode.PUSH", "arg1": null, "arg2": null},
-  {"index": 2, "opcode": "Opcode.LD", "arg1": "#", "arg2": 4097},
-  {"index": 3, "opcode": "Opcode.PUSH", "arg1": null, "arg2": null},
-  {"index": 4, "opcode": "Opcode.LD", "arg1": "#", "arg2": 0},
-  {"index": 5, "opcode": "Opcode.ST", "arg1": "=", "arg2": 4097},
-  {"index": 6, "opcode": "Opcode.READ", "arg1": null, "arg2": 1},
-  {"index": 7, "opcode": "Opcode.ST", "arg1": "=", "arg2": 8095},
-  {"index": 8, "opcode": "Opcode.LD", "arg1": "=", "arg2": 8095},
-  {"index": 9, "opcode": "Opcode.CMP", "arg1": "#", "arg2": 0},
-  {"index": 10, "opcode": "Opcode.JB", "arg1": "#", "arg2": 26},
-  {"index": 11, "opcode": "Opcode.LD", "arg1": "#", "arg2": 4097},
-  {"index": 12, "opcode": "Opcode.PUSH", "arg1": null, "arg2": null},
-  {"index": 13, "opcode": "Opcode.LD", "arg1": "~", "arg2": 8093},
-  {"index": 14, "opcode": "Opcode.CMP", "arg1": "#", "arg2": 0},
-  {"index": 15, "opcode": "Opcode.JE", "arg1": "#", "arg2": 20},
-  {"index": 16, "opcode": "Opcode.POP", "arg1": null, "arg2": null},
-  {"index": 17, "opcode": "Opcode.INC", "arg1": null, "arg2": null},
-  {"index": 18, "opcode": "Opcode.PUSH", "arg1": null, "arg2": null},
-  {"index": 19, "opcode": "Opcode.JUMP", "arg1": "#", "arg2": 13},
-  {"index": 20, "opcode": "Opcode.LD", "arg1": "=", "arg2": 8095},
-  {"index": 21, "opcode": "Opcode.ST", "arg1": "~", "arg2": 8093},
-  {"index": 22, "opcode": "Opcode.POP", "arg1": null, "arg2": null},
-  {"index": 23, "opcode": "Opcode.READ", "arg1": null, "arg2": 1},
-  {"index": 24, "opcode": "Opcode.ST", "arg1": "=", "arg2": 8095},
-  {"index": 25, "opcode": "Opcode.JUMP", "arg1": "#", "arg2": 8},
-  {"index": 26, "opcode": "Opcode.LD", "arg1": "#", "arg2": 4097},
-  {"index": 27, "opcode": "Opcode.PUSH", "arg1": null, "arg2": null},
-  {"index": 28, "opcode": "Opcode.LD", "arg1": "~", "arg2": 8093},
-  {"index": 29, "opcode": "Opcode.PRINT", "arg1": null, "arg2": 2},
-  {"index": 30, "opcode": "Opcode.CMP", "arg1": "#", "arg2": 0},
-  {"index": 31, "opcode": "Opcode.JE", "arg1": "#", "arg2": 36},
-  {"index": 32, "opcode": "Opcode.POP", "arg1": null, "arg2": null},
-  {"index": 33, "opcode": "Opcode.INC", "arg1": null, "arg2": null},
-  {"index": 34, "opcode": "Opcode.PUSH", "arg1": null, "arg2": null},
-  {"index": 35, "opcode": "Opcode.JUMP", "arg1": "#", "arg2": 28},
-  {"index": 36, "opcode": "Opcode.POP", "arg1": null, "arg2": null},
-  {"index": 37, "opcode": "Opcode.HALT", "arg1": null, "arg2": null}]
-
-out_stdout: |-
-  Sergey
 out_log: |-
   INFO    processor:simulation    Simulation start
   INFO    controlunit:microcode_handler execute_command       Opcode.LD | tick:          3 | ip:          1 | dr          0 |ar:          0 | acc:          0 | sp:       8095
